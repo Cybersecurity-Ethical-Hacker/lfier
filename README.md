@@ -1,7 +1,7 @@
 # LFIScanner 🔍
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![GitHub Issues](https://img.shields.io/github/issues/Cybersecurity-Ethical-Hacker/lfier.svg)](https://github.com/Cybersecurity-Ethical-Hacker/lfier/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/Cybersecurity-Ethical-Hacker/lfier.svg)](https://github.com/Cybersecurity-Ethical-Hacker/lfier/stargazers)
 [![Contributions Welcome](https://img.shields.io/badge/Contributions-Welcome-brightgreen.svg)](CONTRIBUTING.md)
@@ -9,8 +9,7 @@
 🔍 LFIScanner is a tool engineered to detect **Local File Inclusion (LFI)** vulnerabilities in web applications. It scans URLs with parameters, injects various payloads, and checks for indicators in the responses to identify potential LFI vulnerabilities. Leveraging asynchronous programming, LFIScanner ensures efficient and accurate scanning, even in environments protected by WAFs or cloud-based defenses.
 
 ## 📸 Screenshot:
-![lfier](https://github.com/user-attachments/assets/71db24c3-93cf-4ce3-937d-fc746f8d02c3)
-
+![lfier](https://github.com/user-attachments/assets/41ee1815-28fe-44ad-b34a-000e48951614)
 
 ## 🌟 Features
 
