@@ -24,7 +24,7 @@ from aiohttp.connector import TCPConnector
 
 init(autoreset=True)
 
-DEFAULT_WORKERS = 25
+DEFAULT_WORKERS = 24
 DEFAULT_TIMEOUT = 6
 DEFAULT_RATE_LIMIT = 400
 DEFAULT_PER_HOST_CONNECTIONS = 20
