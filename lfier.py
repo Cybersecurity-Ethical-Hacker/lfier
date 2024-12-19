@@ -1076,8 +1076,6 @@ def main() -> None:
         
         print(f"\n{Fore.CYAN}Checking for updates...{Style.RESET_ALL}")
         
-        current_version = VERSION
-        
         try:
             env = os.environ.copy()
             env["GIT_ASKPASS"] = "echo"
@@ -1093,22 +1091,24 @@ def main() -> None:
                 def version_tuple(v):
                     return tuple(map(int, v.split('.')))
                 
+                current_version = VERSION
+                
                 if version_tuple(remote_version) <= version_tuple(current_version):
                     print(f"{Fore.GREEN}Already up-to-date.{Style.RESET_ALL}")
                     sys.exit(0)
+                else:
+                    updater = AutoUpdater()
+                    if not updater.is_git_repo:
+                        print(f"{Fore.RED}Not a git repository. Cannot update.{Style.RESET_ALL}")
+                        sys.exit(1)
                     
-                updater = AutoUpdater()
-                if not updater.is_git_repo:
-                    print(f"{Fore.RED}Not a git repository. Cannot update.{Style.RESET_ALL}")
-                    sys.exit(1)
-                
-                update_result = updater._perform_update()
-                if update_result.get('status') == 'error':
-                    print(f"{Fore.RED}Update failed: {update_result.get('message')}{Style.RESET_ALL}")
-                    sys.exit(1)
-                print(f"{Fore.GREEN}Tool updated successfully to {remote_version}!{Style.RESET_ALL}")
-                print(f"{Fore.YELLOW}Please restart the tool...{Style.RESET_ALL}")
-                sys.exit(0)
+                    update_result = updater._perform_update()
+                    if update_result.get('status') == 'error':
+                        print(f"{Fore.RED}Update failed: {update_result.get('message')}{Style.RESET_ALL}")
+                        sys.exit(1)
+                    print(f"{Fore.GREEN}Updated successfully!{Style.RESET_ALL}")
+                    print(f"{Fore.YELLOW}Please restart the tool...{Style.RESET_ALL}")
+                    sys.exit(0)
                 
         except subprocess.TimeoutExpired:
             print(f"{Fore.RED}Update check timed out.{Style.RESET_ALL}")
