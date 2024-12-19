@@ -1094,7 +1094,7 @@ def main() -> None:
                     return tuple(map(int, v.split('.')))
                 
                 if version_tuple(remote_version) <= version_tuple(current_version):
-                    print(f"{Fore.GREEN}You are already on the latest version ({current_version}).{Style.RESET_ALL}")
+                    print(f"{Fore.GREEN}Already up-to-date.{Style.RESET_ALL}")
                     sys.exit(0)
                     
                 updater = AutoUpdater()
@@ -1106,7 +1106,7 @@ def main() -> None:
                 if update_result.get('status') == 'error':
                     print(f"{Fore.RED}Update failed: {update_result.get('message')}{Style.RESET_ALL}")
                     sys.exit(1)
-                print(f"{Fore.GREEN}Tool updated successfully from version {current_version} to {remote_version}!{Style.RESET_ALL}")
+                print(f"{Fore.GREEN}Tool updated successfully to {remote_version}!{Style.RESET_ALL}")
                 print(f"{Fore.YELLOW}Please restart the tool...{Style.RESET_ALL}")
                 sys.exit(0)
                 
