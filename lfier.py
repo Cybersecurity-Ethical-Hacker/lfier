@@ -1073,22 +1073,49 @@ def main() -> None:
         if not git_handler.check_git()[0]:
             print(f"\n{Fore.RED}Cannot check for updates without Git installed.{Style.RESET_ALL}")
             sys.exit(1)
-        updater = AutoUpdater()
-        if not updater.is_git_repo:
-            print(f"{Fore.RED}Not a git repository. Cannot update.{Style.RESET_ALL}")
-            sys.exit(1)
+        
         print(f"\n{Fore.CYAN}Checking for updates...{Style.RESET_ALL}")
-        update_result = updater.check_and_update()
-        if update_result.get('status') == 'error':
-            print(f"{Fore.RED}Update failed: {update_result.get('message')}{Style.RESET_ALL}")
+        
+        current_version = VERSION
+        
+        try:
+            env = os.environ.copy()
+            env["GIT_ASKPASS"] = "echo"
+            env["GIT_TERMINAL_PROMPT"] = "0"
+            with open(os.devnull, 'w') as devnull:
+                subprocess.run(['git', 'fetch', '--tags', 'origin'], 
+                              env=env, stdout=devnull, stderr=devnull, timeout=2)
+                result = subprocess.run(['git', 'describe', '--tags', '--abbrev=0', 'origin/main'],
+                                      env=env, stdout=subprocess.PIPE, stderr=devnull, 
+                                      text=True, timeout=2)
+                remote_version = result.stdout.strip().lstrip('v')
+                
+                def version_tuple(v):
+                    return tuple(map(int, v.split('.')))
+                
+                if version_tuple(remote_version) <= version_tuple(current_version):
+                    print(f"{Fore.GREEN}You are already on the latest version ({current_version}).{Style.RESET_ALL}")
+                    sys.exit(0)
+                    
+                updater = AutoUpdater()
+                if not updater.is_git_repo:
+                    print(f"{Fore.RED}Not a git repository. Cannot update.{Style.RESET_ALL}")
+                    sys.exit(1)
+                
+                update_result = updater._perform_update()
+                if update_result.get('status') == 'error':
+                    print(f"{Fore.RED}Update failed: {update_result.get('message')}{Style.RESET_ALL}")
+                    sys.exit(1)
+                print(f"{Fore.GREEN}Tool updated successfully from version {current_version} to {remote_version}!{Style.RESET_ALL}")
+                print(f"{Fore.YELLOW}Please restart the tool...{Style.RESET_ALL}")
+                sys.exit(0)
+                
+        except subprocess.TimeoutExpired:
+            print(f"{Fore.RED}Update check timed out.{Style.RESET_ALL}")
             sys.exit(1)
-        elif update_result.get('updated'):
-            print(f"{Fore.GREEN}Tool updated successfully to version {update_result.get('version')}!{Style.RESET_ALL}")
-            print(f"{Fore.YELLOW}Please restart the tool...{Style.RESET_ALL}")
-            sys.exit(0)
-        else:
-            print(f"{Fore.GREEN}{update_result.get('message', 'Already up-to-date.')}{Style.RESET_ALL}")
-            sys.exit(0)
+        except Exception as e:
+            print(f"{Fore.RED}Unable to check for updates: {str(e)}{Style.RESET_ALL}")
+            sys.exit(1)
     config = Config(args)
     setup_logging(config)
     scanner = LFIScanner(config)
