@@ -34,7 +34,7 @@
    cd xssdynagen
    ```
 
-**Install the required dependencies using pipx (Kali 2024.4+):**
+**Kali Linux already includes the following dependencies by default. However, if needed, you can install the required dependencies manually using pipx (Kali 2024.4+):**
 
    ```bash
    pipx install aiohttp 
@@ -42,7 +42,7 @@
    pipx install tqdm
    ```
 
-**Kali Linux already includes the following dependencies by default. However, if needed, you can install the required dependencies manually using pipx (Kali 2024.4+):**
+**Install the required dependencies using pipx (Kali 2024.4+):**
 
    ```bash
    pip install -r requirements.txt
