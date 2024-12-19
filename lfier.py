@@ -908,26 +908,25 @@ class Config:
                     'current': current_version,
                     'update_available': 'Unknown'
                 }
-            updater = AutoUpdater()
-            update_result = updater.check_and_update()
-            if update_result.get('status') == 'error':
+            
+            remote_version = self._get_remote_version()
+            if remote_version is None:
                 return {
                     'current': current_version,
                     'update_available': 'Check skipped'
                 }
-            elif update_result.get('message') == 'Check skipped':
-                return {
-                    'current': current_version,
-                    'update_available': 'Check skipped'
-                }
-            elif update_result.get('updated'):
-                return {
-                    'current': current_version,
-                    'update_available': 'Yes'
-                }
+            
+            def version_tuple(v):
+                return tuple(map(int, v.split('.')))
+            
+            current = version_tuple(current_version)
+            remote = version_tuple(remote_version)
+            
+            update_available = remote > current
+            
             return {
                 'current': current_version,
-                'update_available': 'No'
+                'update_available': 'Yes' if update_available else 'No'
             }
         except Exception as e:
             return {
