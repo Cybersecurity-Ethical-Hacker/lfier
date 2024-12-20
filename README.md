@@ -232,4 +232,4 @@ Ensure that your use of this tool complies with all applicable local, national, 
 Whether you're a budding penetration tester aiming to enhance your skills or a seasoned professional seeking to uncover and mitigate security issues, LFier is here to support your journey in building a safer digital landscape.
 
 > [!NOTE]
-> Building a Safer Digital World. 🔒
+> Let’s build a safer web together! 🌐🔐
