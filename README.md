@@ -21,7 +21,6 @@
 - **⏱️ Rate Limiting & Batching**: Control how many requests per second are sent and how many URLs are processed per batch, preventing server overload and improving scan reliability.
 - **📝 Flexible Output**: Outputs results in JSON or plain text format, suitable for integration into CI/CD pipelines or manual review.
 - **🔧 Configurable Settings**: Adjustable rate limiting, timeouts, and worker counts to optimize scanning performance.
-- **📊 Detailed Logging & Progress Tracking**: Provides real-time progress via a terminal progress bar, along with comprehensive logging to assist in debugging and analysis.
 - **📂 Organized Scans**: Automatically organizes scan results into structured directories based on domains or URL lists in text or json format.
 - **🔄 Easy Updates**: Keep the tool up-to-date with the latest features and security patches using the `-u` or `--update` flag.
 
