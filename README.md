@@ -1,4 +1,4 @@
-# LFIScanner 🔍
+# LFIer 🔍
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
@@ -6,7 +6,7 @@
 [![GitHub Stars](https://img.shields.io/github/stars/Cybersecurity-Ethical-Hacker/lfier.svg)](https://github.com/Cybersecurity-Ethical-Hacker/lfier/stargazers)
 [![Contributions Welcome](https://img.shields.io/badge/Contributions-Welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-🔍 LFIScanner is a tool engineered to detect **Local File Inclusion (LFI)** vulnerabilities in web applications. It scans URLs with parameters, injects various payloads, and checks for indicators in the responses to identify potential LFI vulnerabilities. Leveraging asynchronous programming, LFIScanner ensures efficient and accurate scanning, even in environments protected by WAFs or cloud-based defenses.
+🔍 LFIer is a tool engineered to detect **Local File Inclusion (LFI)** vulnerabilities in web applications. It scans URLs with parameters, injects various payloads, and checks for indicators in the responses to identify potential LFI vulnerabilities. Leveraging asynchronous programming, LFIer ensures efficient and accurate scanning, even in environments protected by WAFs or cloud-based defenses.
 
 ## 📸 Screenshot:
 ![lfier](https://github.com/user-attachments/assets/41ee1815-28fe-44ad-b34a-000e48951614)
@@ -204,8 +204,10 @@ If you encounter problems while using **LFIer**, consider the following common c
 - **Customization:** Tailor the payloads and worker settings based on your system's capabilities and the specific requirements of your testing environment.
 
 ## 📂 Directory Structure
-- `lfiscanner.py`: Main executable script.
+- `lfier.py`: Main executable script.
 - `lfi_payloads.txt`: Default payload file containing grouped payloads and indicators.
+- `extra_payloads.txt`: Contains extra payloads.
+- `requirements.txt`: Contains the dependencies required for installing LFIer..
 - `scans/`: Contains output files and scan results.
 - `logs/`: Contains detailed log files.
 
