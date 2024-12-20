@@ -207,7 +207,7 @@ If you encounter problems while using **LFIer**, consider the following common c
 - `lfier.py`: Main executable script.
 - `lfi_payloads.txt`: Default payload file containing grouped payloads and indicators.
 - `extra_payloads.txt`: Contains extra payloads.
-- `requirements.txt`: Contains the dependencies required for installing LFIer..
+- `requirements.txt`: Contains a list of dependencies required to run the script.
 - `scans/`: Contains output files and scan results.
 - `logs/`: Contains detailed log files.
 
