@@ -4,6 +4,7 @@ import os
 import sys
 import time
 import json
+import re
 import random
 import logging
 import asyncio
@@ -496,6 +497,21 @@ class LFIScanner:
             self.tested_payloads.add(key)
             return False
 
+    def decode_hex_sequence(self, match: re.Match) -> str:
+        """
+        Decode a single hex sequence with proper error handling.
+        """
+        try:
+            hex_str = match.group(0).replace('\\x', '').replace('\\u', '')
+            decoded = bytes.fromhex(hex_str).decode('utf-8', errors='strict')
+            return decoded
+        except UnicodeDecodeError:
+            logging.warning(f"Invalid Unicode sequence detected: {match.group(0)}")
+            return match.group(0)
+        except ValueError:
+            logging.warning(f"Invalid hex sequence detected: {match.group(0)}")
+            return match.group(0)
+
     async def validate_lfi(
         self,
         session: aiohttp.ClientSession,
@@ -513,10 +529,49 @@ class LFIScanner:
             )
             async with session.get(url, timeout=timeout, allow_redirects=True) as response:
                 content = await response.text()
-                matched_indicators = [pattern for pattern in indicators if pattern in content]
+                
+                # Process indicators with encoding checks
+                matched_indicators = []
+                for pattern in indicators:
+                    # Check original pattern
+                    if pattern in content:
+                        matched_indicators.append(pattern)
+                        continue
+                        
+                    # Check for encoded versions
+                    if re.search(r'(\\x[0-9a-fA-F]{2}|\\u[0-9a-fA-F]{4}|&#x[0-9a-fA-F]+;)', pattern):
+                        try:
+                            # Handle HTML hex entities first
+                            html_decoded = re.sub(
+                                r'&#x([0-9a-fA-F]+);',
+                                lambda m: chr(int(m.group(1), 16)),
+                                pattern
+                            )
+                            
+                            # Handle escaped sequences with proper error handling
+                            decoded_pattern = re.sub(
+                                r'(\\x[0-9a-fA-F]{2}|\\u[0-9a-fA-F]{4})',
+                                self.decode_hex_sequence,
+                                html_decoded
+                            )
+
+                            if decoded_pattern in content:
+                                matched_indicators.append(pattern)
+                                continue
+
+                            # Check for partially decoded patterns
+                            if any(part in content for part in decoded_pattern.split('\\')):
+                                matched_indicators.append(pattern)
+                                continue
+
+                        except Exception as e:
+                            logging.error(f"Error processing pattern '{pattern}': {str(e)}")
+                            continue
+
                 if response.status in (301, 302, 303, 307, 308):
                     location = response.headers.get('Location', '')
                     return False, [], {"status": response.status, "redirect_location": location}
+                
                 if matched_indicators:
                     return True, matched_indicators, {
                         "status": response.status,
@@ -524,6 +579,7 @@ class LFIScanner:
                         "validation_reason": "Indicator matched"
                     }
                 return False, [], {"status": response.status}
+                
         except Exception as e:
             return await HTTPErrorHandler.handle_request_error(
                 error=e,
