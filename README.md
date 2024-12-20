@@ -205,6 +205,7 @@ If you encounter problems while using **LFIer**, consider the following common c
 ## 📂 Directory Structure
 - `lfier.py`: Main executable script.
 - `lfi_payloads.txt`: Default payload file containing grouped payloads and indicators.
+- `extra_payloads.txt`: Extra payload file containing grouped payloads and indicators.
 - `requirements.txt`: Contains a list of dependencies required to run the script.
 - `scans/`: Contains output files and scan results.
 - `logs/`: Contains detailed log files.
