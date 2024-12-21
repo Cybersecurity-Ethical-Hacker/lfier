@@ -30,7 +30,7 @@
 
    ```bash
    git clone https://github.com/Cybersecurity-Ethical-Hacker/lfier.git
-   cd xssdynagen
+   cd lfier
    ```
 
 **Kali Linux (Kali 2024.4+) already includes the following dependencies by default. However, if needed, you can install the required dependencies manually using `pipx`:**
@@ -66,7 +66,7 @@
 
    ```bash
    git clone https://github.com/Cybersecurity-Ethical-Hacker/lfier.git
-   cd xssdynagen
+   cd lfier
    ```
 
 **Ensure you have Python 3.8+ installed. Install the required dependencies using pip:**
@@ -82,7 +82,7 @@ Whenever you:
 - Open a New Terminal Window
 - Restart Your Computer
   
-You must activate the virtual environment before running XSSDynagen to ensure that all dependencies are correctly loaded.
+You must activate the virtual environment before running LFIer to ensure that all dependencies are correctly loaded.
 
 
 ## 📄 Payloads Mechanism
