@@ -236,6 +236,8 @@ Trigger a test notification from LFIer to ensure everything is working correctly
 
 You should receive a real-time alert in your Telegram group.
 
+![lfier2](https://github.com/user-attachments/assets/01f9556d-1c98-4b64-a012-bcaecf22164a)
+
 
 ## 🛠️ Troubleshooting
 
