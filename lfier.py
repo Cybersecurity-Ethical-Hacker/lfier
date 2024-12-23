@@ -32,6 +32,11 @@ DEFAULT_PER_HOST_CONNECTIONS = 20
 BATCH_SIZE = 50
 CONNECTION_LIMIT_MULTIPLIER = 4
 
+# Telegram Configuration
+TELEGRAM_BOT_TOKEN: str = ""
+TELEGRAM_CHAT_ID: str = ""
+TELEGRAM_NOTIFICATIONS_ENABLED: bool = False
+
 VERSION = "0.0.1"
 GITHUB_REPOSITORY: str = "Cybersecurity-Ethical-Hacker/lfier"
 GITHUB_URL: str = f"https://github.com/{GITHUB_REPOSITORY}"
@@ -480,6 +485,34 @@ class LFIScanner:
             
             self.result_buffer.clear()
 
+    async def send_telegram_notification(self, message: str) -> None:
+        """Send notification to Telegram if enabled."""
+        if not TELEGRAM_NOTIFICATIONS_ENABLED or not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+            return
+
+        try:
+            telegram_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+            message = (message.replace('<', '&lt;')
+                            .replace('>', '&gt;')
+                            .replace('&', '&amp;')
+                            .replace('"', '&quot;')
+                            .replace("'", '&#39;'))
+            
+            params = {
+                'chat_id': TELEGRAM_CHAT_ID,
+                'text': message,
+                'parse_mode': 'HTML'
+            }
+            
+            connector = aiohttp.TCPConnector(ssl=False)
+            async with aiohttp.ClientSession(connector=connector) as session:
+                async with session.post(telegram_url, json=params) as response:
+                    if response.status != 200:
+                        error_msg = await response.text()
+                        logging.error(f"Telegram notification error: {error_msg}")
+        except Exception as e:
+            logging.error(f"Telegram notification error: {str(e)}")
+
     async def claim_vulnerability(self, hostname: str, param: str) -> bool:
         key = (hostname, param)
         async with self.vuln_lock:
@@ -646,6 +679,21 @@ class LFIScanner:
             f"Indicator: {Fore.YELLOW}{indicator_display}{Style.RESET_ALL} | "
             f"Payload #{Fore.YELLOW}{line_num}{Style.RESET_ALL}"
         )
+
+        # Prepare and send Telegram notification
+        notification_message = (
+            f"🎯 LFI Vulnerability Found!\n\n"
+            f"🌐 Domain: {hostname}\n"
+            f"📝 Parameter: {param}\n"
+            f"🔍 Indicator: {main_indicator}\n"
+            f"💉 Payload: #{line_num}\n"
+            f"🔗 URL: {payloaded_url}\n"
+            f"📊 Response Status: {response_info.get('status', 'N/A')}\n"
+            f"⚠️ Additional Indicators: {indicator_count-1}\n"
+            f"🕒 Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        )
+        await self.send_telegram_notification(notification_message)
+
         result_data = {
             "parameter": param,
             "hostname": hostname,
