@@ -5,6 +5,8 @@ import sys
 import time
 import json
 import re
+import psutil
+import aiodns
 import random
 import logging
 import asyncio
@@ -13,7 +15,7 @@ import subprocess
 from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs, urlencode
-from typing import List, Dict, Any, Optional, Tuple, Set, Iterator
+from typing import List, Dict, Any, Optional, Tuple, Set, Iterator, AsyncIterator
 import aiofiles
 from aiofiles.threadpool.text import AsyncTextIOWrapper
 
@@ -128,8 +130,17 @@ class PayloadGroup:
     """Represents a group of payloads and their associated validation indicators."""
     def __init__(self, payloads: Optional[List[str]] = None, 
                  indicators: Optional[List[str]] = None) -> None:
-        self.payloads: List[str] = list(dict.fromkeys(payloads)) if payloads else []
-        self.indicators: List[str] = indicators or []
+        # Precompile regex patterns
+        self.payloads = list(dict.fromkeys(payloads)) if payloads else []
+        self.indicators = indicators or []
+        self.compiled_indicators = [re.compile(re.escape(i)) for i in self.indicators]
+
+    def match_indicators(self, content: str) -> List[str]:
+        """Optimized indicator matching"""
+        return [
+            self.indicators[i] for i, pattern in enumerate(self.compiled_indicators)
+            if pattern.search(content)
+        ]
 
 def load_grouped_payloads(file_content: str) -> List[PayloadGroup]:
     groups: List[PayloadGroup] = []
@@ -396,71 +407,71 @@ class AutoUpdater:
 class BatchProcessor:
     """Handles processing of items in batches for efficient resource usage."""
     def __init__(self, batch_size: int = 50) -> None:
-        self.batch_size = batch_size
+        self.batch_size = min(max(batch_size, 25), 200)
+        self.memory_threshold = 0.9
 
-    def create_batches(self, items: List[Any]) -> Iterator[List[Any]]:
+    async def create_batches(self, items: List[Any]) -> AsyncIterator[List[Any]]:
+        """Async generator for creating batches with memory monitoring"""
         for i in range(0, len(items), self.batch_size):
-            yield items[i:i + self.batch_size]
+            mem_usage = psutil.Process().memory_percent()
+            if mem_usage > self.memory_threshold:
+                # Reduce batch size if memory usage is high
+                current_batch = items[i:i + self.batch_size // 2]
+            else:
+                current_batch = items[i:i + self.batch_size]
+            yield current_batch
+            await asyncio.sleep(0)  # Allow other tasks to run
 
 class RateLimiter:
     """Implements token bucket algorithm for rate limiting requests."""
     def __init__(self, rate_limit: int) -> None:
-        self.rate_limit: int = rate_limit
-        self.tokens: float = rate_limit
-        self.last_update: float = time.time()
-        self.lock: asyncio.Lock = asyncio.Lock()
-
+        self.rate_limit = rate_limit
+        self.tokens = rate_limit
+        self.last_update = time.time()
+        self.lock = asyncio.Lock()
+        self.window_size = 1.0  # 1 second window
+        self.requests = []
+        
     async def acquire(self) -> None:
         async with self.lock:
             now = time.time()
-            time_passed = now - self.last_update
-            self.tokens = min(self.rate_limit, self.tokens + time_passed * self.rate_limit)
-            self.last_update = now
-            if self.tokens < 1:
-                await asyncio.sleep(1/self.rate_limit)
-                self.tokens = 1
-            self.tokens -= 1
+            # Remove old requests from window
+            self.requests = [t for t in self.requests if now - t < self.window_size]
+            
+            if len(self.requests) >= self.rate_limit:
+                sleep_time = self.requests[0] + self.window_size - now
+                if sleep_time > 0:
+                    await asyncio.sleep(sleep_time)
+                    
+            self.requests.append(now)
 
-class LFIScanner:
-    """Main scanner class that orchestrates the LFI vulnerability scanning process."""
-    def __init__(self, config: 'Config') -> None:
-        self.semaphore = asyncio.Semaphore(config.max_workers)
-        self.config: 'Config' = config
-        self.stats: Dict[str, int] = {
-            'total_urls': 0,
-            'total_parameters': 0,
-            'payloads_tested': 0,
-            'successful_payloads': 0,
-            'failed_payloads': 0,
-            'errors': 0,
-            'current_test': 0,
-            'total_tests': 0
-        }
-        self.batch_processor: BatchProcessor = BatchProcessor(config.batch_size)
-        self.rate_limiter: RateLimiter = RateLimiter(config.rate_limit)
-        self.progress_lock: asyncio.Lock = asyncio.Lock()
-        self.results_lock: asyncio.Lock = asyncio.Lock()
-        self.buffer_lock: asyncio.Lock = asyncio.Lock()
-        self.result_buffer: List[Dict[str, Any]] = []
-        self.BUFFER_SIZE: int = 1000
-        self.results: List[str] = []
-        self.json_results: List[Dict[str, Any]] = []
-        self.start_time: Optional[float] = None
-        self.running = True
-        self.pbar: Optional[tqdm] = None
-        self.payload_groups: List[PayloadGroup] = []
-        self.tested_payloads: Set[Tuple[str, str, str]] = set()
-        self.discovered_vulnerabilities: Set[Tuple[str, str, str]] = set()
-        self.found_vulnerable: Set[Tuple[str, str]] = set()
-        self.vuln_lock: asyncio.Lock = asyncio.Lock()
+class ResultBuffer:
+    def __init__(self, config: 'Config', max_size: int = 1000):
+        self.buffer = []
+        self.max_size = max_size
+        self.lock = asyncio.Lock()
+        self.config = config
+        self.json_results = []
 
-    async def _flush_buffer(self) -> None:
-        async with self.buffer_lock:
-            if not self.result_buffer:
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.flush()
+
+    async def add(self, result: Dict[str, Any]):
+        async with self.lock:
+            self.buffer.append(result)
+            if len(self.buffer) >= self.max_size:
+                await self.flush()
+
+    async def flush(self):
+        async with self.lock:
+            if not self.buffer:
                 return
             
             if self.config.json_output:
-                self.json_results.extend(self.result_buffer)
+                self.json_results.extend(self.buffer)
                 try:
                     async with aiofiles.open(self.config.output_file, 'w') as f:
                         await f.write(json.dumps(self.json_results, indent=2))
@@ -469,7 +480,7 @@ class LFIScanner:
             else:
                 try:
                     async with aiofiles.open(self.config.output_file, 'a') as f:
-                        for result in self.result_buffer:
+                        for result in self.buffer:
                             formatted_result = (
                                 f"LFI vulnerability found: [parameter: {result['parameter']}] "
                                 f"[domain: {result['hostname']}] | [Payload #{result['payload_number']}]\n"
@@ -483,7 +494,46 @@ class LFIScanner:
                 except Exception as e:
                     print(f"\n{Fore.RED}Error saving text results: {e}{Style.RESET_ALL}")
             
-            self.result_buffer.clear()
+            self.buffer.clear()
+
+class LFIScanner:
+    """Main scanner class that orchestrates the LFI vulnerability scanning process."""
+    def __init__(self, config: 'Config') -> None:
+        self.config = config
+        self.semaphore = asyncio.Semaphore(config.max_workers)
+        self.connector_kwargs: Dict[str, Any] = {
+            'limit': min(config.max_workers * CONNECTION_LIMIT_MULTIPLIER, 1000),
+            'ttl_dns_cache': 300,
+            'enable_cleanup_closed': True,
+            'force_close': True,
+            'limit_per_host': min(DEFAULT_PER_HOST_CONNECTIONS * 2, 100),
+            'ssl': False
+        }
+        self.batch_processor: BatchProcessor = BatchProcessor(config.batch_size)
+        self.rate_limiter: RateLimiter = RateLimiter(config.rate_limit)
+        self.progress_lock: asyncio.Lock = asyncio.Lock()
+        self.results_lock: asyncio.Lock = asyncio.Lock()
+        self.result_buffer = ResultBuffer(config)
+        self.stats: Dict[str, int] = {
+            'total_urls': 0,
+            'total_parameters': 0,
+            'payloads_tested': 0,
+            'successful_payloads': 0,
+            'failed_payloads': 0,
+            'errors': 0,
+            'current_test': 0,
+            'total_tests': 0
+        }
+        self.results: List[str] = []
+        self.json_results: List[Dict[str, Any]] = []
+        self.start_time: Optional[float] = None
+        self.running = True
+        self.pbar: Optional[tqdm] = None
+        self.payload_groups: List[PayloadGroup] = []
+        self.tested_payloads: Set[Tuple[str, str, str]] = set()
+        self.discovered_vulnerabilities: Set[Tuple[str, str, str]] = set()
+        self.found_vulnerable: Set[Tuple[str, str]] = set()
+        self.vuln_lock: asyncio.Lock = asyncio.Lock()
 
     async def send_telegram_notification(self, message: str) -> None:
         """Send notification to Telegram if enabled."""
@@ -702,24 +752,23 @@ class LFIScanner:
             "patterns_matched": patterns,
             "response_info": response_info
         }
-        async with self.buffer_lock:
-            self.result_buffer.append(result_data)
-            if len(self.result_buffer) >= self.BUFFER_SIZE:
-                await self._flush_buffer()
+        await self.result_buffer.add(result_data)
+        
         if self.running and self.pbar:
             self.pbar.write(output)
 
     async def run(self) -> None:
         try:
-            print_banner(self.config)
-            self.start_time = time.time()
-            print(f"{Fore.CYAN}📦 Loading URLs...{Style.RESET_ALL}")
-            urls = await load_file_async(self.config.url_list) if self.config.url_list else [self.config.domain]
-            valid_urls, invalid_urls, no_param_urls = URLValidator.validate_urls_batch(urls)
-            if not valid_urls:
-                print(f"\n{Fore.RED}No valid URLs with parameters found to scan.{Style.RESET_ALL}")
-                return
-            urls = valid_urls
+            async with self.result_buffer:
+                print_banner(self.config)
+                self.start_time = time.time()
+                print(f"{Fore.CYAN}📦 Loading URLs...{Style.RESET_ALL}")
+                urls = await load_file_async(self.config.url_list) if self.config.url_list else [self.config.domain]
+                valid_urls, invalid_urls, no_param_urls = URLValidator.validate_urls_batch(urls)
+                if not valid_urls:
+                    print(f"\n{Fore.RED}No valid URLs with parameters found to scan.{Style.RESET_ALL}")
+                    return
+                urls = valid_urls
             try:
                 with open(self.config.payload_file, 'r') as f:
                     payload_content = f.read()
@@ -766,7 +815,7 @@ class LFIScanner:
                 raise_for_status=False
             ) as session:
                 try:
-                    for batch in self.batch_processor.create_batches(urls):
+                    async for batch in self.batch_processor.create_batches(urls):
                         if not self.running:
                             break
                         await asyncio.gather(
@@ -775,7 +824,7 @@ class LFIScanner:
                         )
                 except asyncio.CancelledError:
                     raise KeyboardInterrupt
-            await self._flush_buffer()
+            await self.result_buffer.flush()
             if self.config.json_output:
                 try:
                     with open(self.config.output_file, 'w') as f:
